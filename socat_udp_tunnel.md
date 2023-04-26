@@ -55,6 +55,55 @@ socat[464260] I transferred 88 bytes from 7 to 5
 rtt min/avg/max/mdev = 1.930/1.930/1.930/0.000 ms```
 ```
 
+#### Why use a UDP channel
+Using a TCP connection would be an overkill for a tunnel because it would require
+more resources from kernel side than UDP. For eg. maintaining an active TCP
+connection requires sending periodic SYN to avoid dropping the connection
+from the other endpoint. With UDP packets are sent on demand. For connection
+reliability is responsible the TCP socket opened on the TUN interface side.
+
+Also, UDP doesn't the MSS (maximum segment size) option as TCP does.
+This means no state needs to be kept and the IP layer is responsible for packet fragmentation. 
+
+Offtopic, the IP layer uses the MTU Link layer property to split the packet in
+fragments that can be accepted by the data-link layer.
+The actual MTU value depends on the network interface.
+Also, it can be computed using a mechanism called Path MTU discovery.
+This mechanism is enabled by default in Linux kernel for IPv4 if the
+`/proc/sys/net/ipv4/ip_no_pmtu_disc` is `0` (boolean value). Another way,
+it is when the application uses a SOCK_STREAM socket and explicitly sets the
+`IP_MTU_DISCOVER` or `IPV6_MTU_DISCOVER` socket options.
+Settings the right MTU is important since with IPv6, the routers will not
+fragment packets bigger than their MTU and it is the sender responsability
+to properly split the packets into fragments. In IPv6, the minimum link MTU
+is 1280 octets and for IPV4 is 576 octets.
+For non-SOCK_STREAM sockets like, the Linux application can use several strategies
+by allowing the kernel to do path MTU dicovery or not and by handling or not the
+datagram fragmentation:
+>By default, Linux UDP does path MTU (Maximum Transmission Unit)
+discovery.  This means the kernel will keep track of the MTU to a
+specific target IP address and return EMSGSIZE when a UDP packet
+write exceeds it.  When this happens, the application should
+decrease the packet size.  Path MTU discovery can be also turned
+off using the IP_MTU_DISCOVER socket option or the
+/proc/sys/net/ipv4/ip_no_pmtu_disc file; see ip(7) for details.
+When turned off, UDP will fragment outgoing UDP packets that
+exceed the interface MTU.  However, disabling it is not
+recommended for performance and reliability reasons.
+
+See programming references for [udp](https://www.man7.org/linux/man-pages/man7/udp.7.html) and 
+[ip](https://www.man7.org/linux/man-pages/man7/ip.7.html).
+
 #### Troubleshooting
 * The error *E unknown device/address "TUN"* means that this version socat doesn't support
 tunnel interfaces on current system
+
+#### References
+* [Overlay Network](https://github.com/kristenjacobs/container-networking/tree/master/4-overlay-network)
+* [Building TUN based virtual networks with socat](https://stuff.mit.edu/afs/sipb/machine/penguin-lust/src/socat-1.7.1.2/doc/socat-tun.html)
+* [Path MTU discovery in practice](https://blog.cloudflare.com/path-mtu-discovery-in-practice/)
+* [What is maximum segment size (MSS)](https://www.cloudflare.com/learning/network-layer/what-is-mss/)
+* [What is MTU?](https://www.cloudflare.com/learning/network-layer/what-is-mtu/)
+* [Linux IPv4 protocol implementation](https://www.man7.org/linux/man-pages/man7/ip.7.html)
+* [Linux IPv6 protocol implementation](https://www.man7.org/linux/man-pages/man7/ipv6.7.html)
+* [User Datagram Protocol for IPv4](https://www.man7.org/linux/man-pages/man7/udp.7.html)
