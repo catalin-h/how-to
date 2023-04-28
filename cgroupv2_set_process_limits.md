@@ -15,7 +15,19 @@ On recent distributions the result would be a single group, meaning the v2 is su
 ```
 Older distributions will show the v1 hierarchy pf controllers:
 ```
-13:rdma:/                                                                                                                                                                                    12:pids:/                                                                                                                                                                                    11:hugetlb:/                                                                                                                                                                                 10:net_prio:/                                                                                                                                                                                9:perf_event:/                                                                                                                                                                               8:net_cls:/                                                                                                                                                                                  7:freezer:/                                                                                                                                                                                  6:devices:/                                                                                                                                                                                  5:blkio:/                                                                                                                                                                                    4:cpuacct:/                                                                                                                                                                                  3:cpu:/                                                                                                                                                                                      2:cpuset:/                                                                                                                                                                                   1:memory:/
+13:rdma:/
+12:pids:/
+11:hugetlb:/
+10:net_prio:/
+9:perf_event:/
+8:net_cls:/
+7:freezer:/
+6:devices:/
+5:blkio:/
+4:cpuacct:/
+3:cpu:/
+2:cpuset:/
+1:memory:/
 0::/
 ```
 Also, some will show both v1 and v2 hierarchies and group.
@@ -62,6 +74,8 @@ system.slice/accounts-daemon.service                       3      -     3.2M    
 ```
 ```
 $ systemd-cgls
+```
+```
 Control group /:
 -.slice
 ├─user.slice
@@ -117,7 +131,7 @@ killed by any kind of OOM killer.
 and not on the hierarchy.
 
 For the cgroup core some important interface files that worth mentioning are:
-* 'cgroup.procs' : a read-write file for adding a process to the cgroup (by writing the PID)
+* `cgroup.procs` : a read-write file for adding a process to the cgroup (by writing the PID)
 and reading the PIDs of all processes which belong to the cgroup (one-per-line).
 Note, that a process migrates all threads in the cgroup and can live in a single cgroup.
 * `cgroup.controllers` : read only file that lists the available controllers;
@@ -129,6 +143,12 @@ resource distribution from the cgroup to its children.
 	* `frozen` : it reads 1 if the cgroup is frozen (all processes belonging to this cgroup and descendants are stopped) and 0 otherwise
 
 Note that when dealing with memory the limit values must be multiples of PAGE_SIZE (4k on x86 and possible 8k, 16k on aarch64).
+To check the `PAGE_SIZE` that the current kernel was build with run:
+```
+$ getconf PAGE_SIZE
+4096 
+```
+
 In next test we will try to modify the `memory.max` limit for a custom cgroup and investigate the aftermath of oom killer action.
 
 Let's mount the cgroup2 in custom mount point `/tmp/cgroup`:
@@ -141,7 +161,38 @@ sudo mount -t cgroup2 none /tmp/cgroup
 ```
 ..and check the mounted fs
 ```
-$ ls /tmp/cgroup/                                                                                                                                                          cgroup.controllers      cgroup.stat             cpuset.cpus.effective  dev-mqueue.mount  io.pressure       memory.stat                    sys-kernel-config.mount   user.slice               cgroup.max.depth        cgroup.subtree_control  cpuset.mems.effective  init.scope        io.stat           -.mount                        sys-kernel-debug.mount                             cgroup.max.descendants  cgroup.threads          cpu.stat               io.cost.model     memory.numa_stat  proc-sys-fs-binfmt_misc.mount  sys-kernel-tracing.mount                           cgroup.procs            cpu.pressure            dev-hugepages.mount    io.cost.qos       memory.pressure   sys-fs-fuse-connections.mount  system.slice
+$ ls /tmp/cgroup/
+```
+```
+cgroup.controllers
+cgroup.max.depth
+cgroup.max.descendants
+cgroup.procs
+cgroup.stat
+cgroup.subtree_control
+cgroup.threads
+cpu.pressure
+cpuset.cpus.effective
+cpuset.mems.effective
+cpu.stat
+dev-hugepages.mount
+dev-mqueue.mount
+init.scope
+io.cost.model
+io.cost.qos
+io.pressure
+io.stat
+memory.numa_stat
+memory.pressure
+memory.stat
+-.mount
+proc-sys-fs-binfmt_misc.mount
+sys-fs-fuse-connections.mount
+sys-kernel-config.mount
+sys-kernel-debug.mount
+sys-kernel-tracing.mount
+system.slice
+user.slice
 ```
 To create a new custom cgroup just create a directory `my.slice` where the cgroup2 sysfs is mounted, in the `user.slice` group - created by systemd.
 ```
@@ -149,7 +200,38 @@ sudo mkdir /tmp/cgroup/user.slice/my.slice
 ```
 If we list the files on this directory we will notice that the kernel automatically creates the controllers inherited from the parent cgroup:
 ```
-$ ls /tmp/cgroup/user.slice/my.slice                                                                                                                                       cgroup.controllers  cgroup.max.descendants  cgroup.threads  io.pressure          memory.high  memory.numa_stat  memory.swap.current  pids.current                                            cgroup.events       cgroup.procs            cgroup.type     memory.current       memory.low   memory.oom.group  memory.swap.events   pids.events                                             cgroup.freeze       cgroup.stat             cpu.pressure    memory.events        memory.max   memory.pressure   memory.swap.high     pids.max                                                cgroup.max.depth    cgroup.subtree_control  cpu.stat        memory.events.local  memory.min   memory.stat       memory.swap.max
+$ ls /tmp/cgroup/user.slice/my.slice
+```
+```
+cgroup.controllers
+cgroup.events
+cgroup.freeze
+cgroup.max.depth
+cgroup.max.descendants
+cgroup.procs
+cgroup.stat
+cgroup.subtree_control
+cgroup.threads
+cgroup.type
+io.pressure
+memory.current
+memory.events
+memory.events.local
+memory.high
+memory.low
+memory.max
+memory.min
+memory.numa_stat
+memory.oom.group
+memory.pressure
+memory.stat
+memory.swap.current
+memory.swap.events
+memory.swap.high
+memory.swap.max
+pids.current
+pids.events
+pids.max
 ```
 A cgroup without any processes is considered empty it can be remove a cgroup with `rmdir`:
 ```
@@ -353,7 +435,7 @@ systemd-cgtop --order=cpu -n 10 user.slice
 We will allow to run the tool for `10` iterations and sort the view by cpu utilization.
 With default cgrop parameters the view looks like this:
 ```
-Control Group                                          			Tasks   %CPU   Memory  Input/s Output/s
+Control Group                                          		Tasks   %CPU   Memory  Input/s Output/s
 user.slice                                                        298  199.5     3.1G        -        -
 user.slice/my.slice                                                 1   99.9     4.0K        -        -
 user.slice/user-1000.slice                                        297   99.7     2.9G        -        -
@@ -375,7 +457,7 @@ $ printf "1\n" | sudo tee /tmp/cgroup/user.slice/my.slice/cpu.weight
 ```
 The result looks like:
 ```
-Control Group                                          			Tasks   %CPU   Memory  Input/s Output/s
+Control Group                                          		Tasks   %CPU   Memory  Input/s Output/s
 user.slice                                                        297  199.3     3.1G        -        -
 user.slice/user-1000.slice                                        296  104.8     2.9G        -        -
 user.slice/user-1000.slice/session-48.scope                         7  104.9   540.2M        -        -
@@ -403,7 +485,7 @@ $ echo "1000 1000" | sudo tee /tmp/cgroup/user.slice/my.slice/cpu.max
 ```
 Now the top cgroup view of the `user.slice` looks a lot different:
 ```
-Control Group                                          			Tasks   %CPU   Memory  Input/s Output/s
+Control Group                                          		Tasks   %CPU   Memory  Input/s Output/s
 user.slice                                                        297  162.5     3.1G        -        -
 user.slice/user-1000.slice                                        296  101.4     2.9G        -        -
 user.slice/user-1000.slice/session-48.scope                         7  101.9   540.1M        -        -
