@@ -28,7 +28,7 @@ which defines the following components:
 Linux `namespaces` are exposed by `nsfs`, a pseudo-filesystem that can't be explicitly mounted as `cgroup fs` and it can't be listed by `/proc/filesystems`.
 >Each process has a /proc/PID/ns directory that contains one file for each type of namespace. Starting in Linux 3.8, each of these 
 files is a special symbolic link that provides a kind of handle for performing certain operations on the associated namespace for the process.
-([namespaces in operation](#namespaces_in_operation))
+[Namespaces in operation, part 2: the namespaces API](https://lwn.net/Articles/531381/)
 
 One way to show the namespaces for a process is to use the `lsns` tool:
 ```
@@ -75,7 +75,8 @@ Note:
 The kernel does some magic to ensure that if two processes are in the same namespace,
 then the inode numbers reported for the corresponding symbolic links in /proc/PID/ns
 will be the same. The inode numbers can be obtained using the stat() system call
-(in the st_ino field of the returned structure)([namespaces in operation](#namespaces_in_operation))
+(in the st_ino field of the returned structure)
+[Namespaces in operation, part 2: the namespaces API](https://lwn.net/Articles/531381/)
 
 The inode info on the link:
 ```
@@ -134,7 +135,8 @@ network namespace where the container runs.
 >The /proc/PID/ns symbolic links also serve other purposes. If we open one of these files,
 then the namespace will continue to exist as long as the file descriptor remains open,
 even if all processes in the namespace terminate. The same effect can also be obtained
-by bind mounting one of the symbolic links to another location in the file system. ([namespaces in operation](#namespaces_in_operation))
+by bind mounting one of the symbolic links to another location in the file system.
+[Namespaces in operation, part 2: the namespaces API](https://lwn.net/Articles/531381/)
 
 In other words to create a new bind mount point for a namespace file:
 * create a mount point file
@@ -206,7 +208,7 @@ The `findmnt --all -t nsfs` will show the relation between namespaces
 ```
 TARGET                    SOURCE                 FSTYPE OPTIONS
 /home/catalin/my_net_ns   nsfs[net:[4026532269]] nsfs   rw
-L¦/home/catalin/my_net_ns nsfs[net:[4026532387]] nsfs   rw
+LÂ¦/home/catalin/my_net_ns nsfs[net:[4026532387]] nsfs   rw
 ```
 and `ls -il my_net_ns` will show the last created namespace:
 ```
@@ -251,7 +253,7 @@ After running the `findmnt` command we see that `my_net_ns_parent` mount point p
 ```
 TARGET                         SOURCE                 FSTYPE OPTIONS
  /home/catalin/my_net_ns        nsfs[net:[4026532269]] nsfs   rw	
- L¦/home/catalin/my_net_ns      nsfs[net:[4026532387]] nsfs   rw
+ LÂ¦/home/catalin/my_net_ns      nsfs[net:[4026532387]] nsfs   rw
  /home/catalin/my_net_ns_parent nsfs[net:[4026532269]] nsfs   rw
 ```
 
@@ -518,7 +520,9 @@ sudo docker run -d --name sleepy_on_my_net --net=my_net --cap-drop=all alpine:la
 ```
 As usual Docker creates a new mount point for the net `namespace`:
 ```
-TARGET                         SOURCE                 FSTYPE OPTIONS                                                                                                                         /run/docker/netns/42d76f7cebf2 nsfs[net:[4026532275]] nsfs   rw                                                                                                                              /run/docker/netns/7328faf83948 nsfs[net:[4026532461]] nsfs   rw 
+TARGET                         SOURCE                 FSTYPE OPTIONS
+/run/docker/netns/42d76f7cebf2 nsfs[net:[4026532275]] nsfs   rw
+/run/docker/netns/7328faf83948 nsfs[net:[4026532461]] nsfs   rw
 ```
 If we run `docker inspect` on `my_net` we get:
 ```
@@ -577,7 +581,6 @@ Note that this time we get a local host address meaning that the nameserver is l
 We can test if this address is indeed a DNS server by trying to lookup some domain:
 ```
 $ sudo docker exec -it sleepy_on_my_net nslookup www.google.com
-[sudo] password for catalin:
 Server:         127.0.0.11
 Address:        127.0.0.11:53
 
