@@ -2,7 +2,7 @@
 
 #### Overview
 * For the next examples we will use Docker version 23.0.3, build 3e7cbfd
-* Linux kernel is 5.10.0-21-amd64
+* We will use Linux kernel 5.10 amd64
 * The DNS works only if a network was assigned to the container
 * Within the container the actual DNS servers or nameservers depends on
 how it was started (w/ or w/o `--dns` option) and the assigned network
@@ -13,8 +13,9 @@ which defines the following components:
 	* Network: a software implementation of the network switch or bridge (IEEE 802.1d) that groups together one or more Sandboxes.
 	* Endpoint: a virtual network interface that connects Sandboxes with Networks. Currently on Linux a pair of [veth](https://man7.org/linux/man-pages/man4/veth.4.html) (Virtual Ethernet Device) are used to connect a Sandbox to a Network.
 * Besides cgroups Docker uses [namespaces](https://man7.org/linux/man-pages/man7/namespaces.7.html) to isolate the process `views` of the system. Linux provides the following namespaces:
-	* |Namespace | Isolates
-:--- | ---:|
+
+|Namespace | Isolates
+|:--- | ---:|
 |cgroup | Cgroup root rectory
 |ipc|  System V IPC, POSIX message queues
 |net|  Network devices, stacks, ports, etc.
@@ -614,7 +615,8 @@ we had to use the `ss` utility that is not available on the compact Alpine Linux
 * running `ss` with the above options will show all (`-a`) UDP (`--udp`) opened sockets and which process owns them (`-p`).
 
 Ok, so a process `dockerd` opened a UDP socket on the same local address `127.0.0.11` in same net namespace but on port `56877`.
-The final piece of this puzzle is given by the Docker's _duct tape_ `iptables` and `nftables` - [see](https://www.netfilter.org/).
+The final piece of this puzzle is given by the Docker's _duct tape_ [iptables](https://www.netfilter.org/projects/iptables/index.html)
+and [nftables](https://www.netfilter.org/projects/nftables/index.html).
 Since `nftables` is the successor of `iptables` and most likely all modern Linux distribution already provides it, lets show the
 rules set from the container net namespace:
 ```
