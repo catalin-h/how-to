@@ -79,7 +79,7 @@ ssh -oTunnel=point-to-point \
 	-i ~/.ssh/key \
 	-f \
 	-w 0:0 \
-	ubuntu@cloud \
+	ubuntu@docker02 \
 	true
 ```
 Parameters:
