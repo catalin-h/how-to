@@ -2,6 +2,11 @@
 Cookbook with recipes for Linux, Docker, networking and debugging
 
 * [How to create a UDP tunnel with socat](./socat_udp_tunnel.md)
+	* [Prerequisites](./socat_udp_tunnel.md#prerequisites)
+	* [Setup](./socat_udp_tunnel.md#setup)
+	* [Running socat](./socat_udp_tunnel.md#running-socat)
+	* [Why use a UDP channel ?](./socat_udp_tunnel.md#why-use-a-udp-channel)
+	* [References](./socat_udp_tunnel.md#references)
 * [How to set process limits with Linux cgroup v2](./cgroupv2_set_process_limits.md)
 	* [Prerequisites](./cgroupv2_set_process_limits.md#prerequisites)
 	* [Limiting the memory for userland processes](./cgroupv2_set_process_limits.md#limiting-the-memory-for-userland-processes)
