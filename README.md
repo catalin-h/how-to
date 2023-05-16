@@ -3,6 +3,10 @@ Cookbook with recipes for Linux, Docker, networking and debugging
 
 * [How to create a UDP tunnel with socat](./socat_udp_tunnel.md)
 * [How to set process limits with Linux cgroup v2](./cgroupv2_set_process_limits.md)
+	* [Prerequisites](./cgroupv2_set_process_limits.md#prerequisites)
+	* [Limiting the memory for userland processes](./cgroupv2_set_process_limits.md#limiting-the-memory-for-userland-processes)
+	* [Limiting the cpu resources](./cgroupv2_set_process_limits.md#limiting-the-cpu-resources)
+	* [References](./cgroupv2_set_process_limits.md#references)
 * [How DNS works on Docker](./how_dns_works_on_docker.md)
 	* [Overview](./how_dns_works_on_docker.md#overview) 
 	* [Linux namespaces implementation overview](./how_dns_works_on_docker.md#linux-namespaces-implementation-overview)
